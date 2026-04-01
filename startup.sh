@@ -9,4 +9,9 @@
 # app:app              = modul:premenná (súbor app.py, premenná app)
 # =============================================================================
 
-gunicorn --bind=0.0.0.0:8000 --timeout 600 app:app
+#!/usr/bin/env bash
+
+# Bind to the port provided by the environment (Azure sets $PORT)
+# Fallback to 8000 if PORT is not set
+PORT_TO_BIND="${PORT:-8000}"
+gunicorn --bind=0.0.0.0:${PORT_TO_BIND} --timeout 600 app:app

@@ -150,6 +150,40 @@ Pre študentov: Toto je príklad toho, ako IoT dashboard zobrazuje dáta
             margin-top: 8px;
         }
 
+        .result-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .result-check:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .result-check.checked {
+            background: rgba(0, 200, 83, 0.12);
+            border-color: rgba(0, 200, 83, 0.4);
+        }
+
+        .result-check input {
+            width: 18px;
+            height: 18px;
+            accent-color: #00c853;
+            cursor: pointer;
+        }
+
+        .result-check-text {
+            font-weight: 600;
+        }
+
         /* ---------- ŠTATISTIKY GRID ---------- */
         .stats-grid {
             display: grid;
@@ -443,6 +477,25 @@ Pre študentov: Toto je príklad toho, ako IoT dashboard zobrazuje dáta
         let refreshInterval = null;    // ID intervalu (na zastavenie)
         let poslednePocetZaznamov = 0; // Na detekciu nových záznamov
 
+        function klucKontrolyVysledku(id) {
+            return `vysledokSkontrolovany_${id}`;
+        }
+
+        function jeVysledokSkontrolovany(id) {
+            return localStorage.getItem(klucKontrolyVysledku(id)) === "true";
+        }
+
+        function nastavKontroluVysledku(id, jeSkontrolovany) {
+            localStorage.setItem(klucKontrolyVysledku(id), jeSkontrolovany ? "true" : "false");
+        }
+
+        function prepniKontroluVysledku(checkbox) {
+            const id = checkbox.dataset.resultId;
+            const wrapper = checkbox.closest(".result-check");
+            nastavKontroluVysledku(id, checkbox.checked);
+            wrapper.classList.toggle("checked", checkbox.checked);
+        }
+
         // ──────────────────────────────────────────────────────────────
         // PRIPOJENIE NA BACKEND
         // ──────────────────────────────────────────────────────────────
@@ -539,11 +592,20 @@ Pre študentov: Toto je príklad toho, ako IoT dashboard zobrazuje dáta
             const posledny = historia[0]; // Najnovší (ORDER BY DESC)
             const symboly = { plus: "+", minus: "−", krat: "×", deleno: "÷" };
             const sym = symboly[posledny.operacia] || "?";
+            const jeSkontrolovany = jeVysledokSkontrolovany(posledny.id);
 
             display.innerHTML = `
                 <div class="big-number">${posledny.vysledok}</div>
                 <div class="big-detail">${posledny.cislo1} ${sym} ${posledny.cislo2}</div>
                 <div class="big-time">ID: #${posledny.id} | ${posledny.cas}</div>
+                <label class="result-check ${jeSkontrolovany ? "checked" : ""}">
+                    <input
+                        type="checkbox"
+                        data-result-id="${posledny.id}"
+                        ${jeSkontrolovany ? "checked" : ""}
+                        onchange="prepniKontroluVysledku(this)">
+                    <span class="result-check-text">Výsledok skontrolovaný</span>
+                </label>
             `;
         }
 
